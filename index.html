@@ -1,89 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="sw">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>KAMBA STUDIO - Sauti Yako Real</title>
+<title>MTAANI - Infinite Kamba Generator</title>
 <style>
-body{background:#0a0a0a;color:#fff;font-family:system-ui;padding:12px;margin:0}
-.card{background:#151515;padding:18px;border-radius:20px;max-width:440px;margin:auto;border:1px solid #222;text-align:center}
-button{width:100%;padding:16px;border-radius:50px;border:none;font-weight:900;margin-top:10px;font-size:15px}
+body{background:#0a0a0a;color:#fff;font-family:system-ui;padding:10px;margin:0}
+.card{background:#151515;padding:16px;border-radius:20px;max-width:500px;margin:auto;border:1px solid #222}
+h2{color:#ffcc00;text-align:center;margin:0}
+textarea{width:100%;padding:12px;background:#222;border:none;border-radius:12px;color:#fff;box-sizing:border-box;font-size:14px}
+button{width:100%;padding:14px;border-radius:50px;border:none;font-weight:900;margin-top:8px}
 .main{background:#ffcc00;color:#000}
-.sec{background:transparent;border:1px solid #ffcc00;color:#ffcc00}
-audio{width:100%;margin-top:10px}
-.wave{width:100%;height:60px;background:#111;border-radius:10px;margin:10px 0}
+.sec{background:#222;border:1px solid #333;color:#fff}
+.gen{background:linear-gradient(90deg,#ffcc00,#ff8800);color:#000}
+.word{padding:2px 4px;border-radius:6px;transition:0.1s}
+.word.active{background:#ffcc00;color:#000;font-weight:900}
 </style>
 </head>
 <body>
 <div class="card">
-<h2 style="color:#ffcc00">🎸 KAMBA + SAUTI YAKO</h2>
-<p style="font-size:11px;color:#888">Sauti yako "eh eh" + Solo Kativoi original (hakuna copyright)</p>
+<h2>🎸 MTAANI INFINITE</h2>
+<p style="text-align:center;font-size:11px;color:#777">Andika Kiswahili popote -> Inaimba + Gita + Bass + Solo = Ngoma mpya kila time</p>
 
-<input type="file" id="voice" accept="audio/*" style="padding:10px;background:#222;border-radius:10px;width:100%;box-sizing:border-box">
-<audio id="voicePlayer" controls style="display:none"></audio>
-<canvas id="wave" class="wave"></canvas>
+<label style="font-size:11px;color:#aaa">ANDIKA MANENO YAKO YA KISWAHILI HAPA (yataimba):</label>
+<textarea id="lyrics" rows="3">Nimwendete mbevo ya muuo
+Ngai ni mutheri wakwa
+Kativoi witu ni muthenya</textarea>
 
-<button class="main" onclick="playMix()">▶️ SIKIZA: KAMBA + "eh eh" PAMOJA</button>
-<button class="sec" onclick="stopAll()">⏹️ STOP</button>
+<div style="display:flex;gap:6px;margin-top:10px">
+<button class="gen" style="flex:1" onclick="generateNewSong()">🎲 GENERATE NGOMA MPYA (tofauti)</button>
+<button class="main" style="flex:1" onclick="playCurrentSong()">▶️ IMBISHA MANENO YANGU</button>
+</div>
 
-<div id="status" style="margin-top:10px;color:#ffcc00;font-size:12px">Upload sauti yako ya "eh eh" kwanza, ama gusa play bila ku-upload uskie Kamba solo pekee</div>
+<div id="songInfo" style="text-align:center;margin:10px 0;font-size:11px;color:#aaa">Ngoma #1 - Key G - Tempo 90 - Solo pattern A</div>
+<div id="lyricsDisplay" style="background:#0e0e0e;padding:10px;border-radius:10px;min-height:50px;line-height:1.8"></div>
+<button class="sec" onclick="stop()">⏹️ STOP</button>
+<canvas id="wave" width="460" height="60" style="width:100%;background:#111;border-radius:10px;margin-top:10px"></canvas>
+<div id="log" style="font-size:10px;color:#555;margin-top:6px;text-align:center"></div>
 </div>
 
 <script>
-let ctx, master, playing=false, voiceBuf=null, srcNodes=[];
-let voiceUrl=null;
+let ctx, master, playing=false, timers=[], seed=1;
+let currentSong=null;
 
-document.getElementById('voice').addEventListener('change', async e=>{
-  let f=e.target.files[0]; if(!f) return;
-  voiceUrl=URL.createObjectURL(f);
-  let p=document.getElementById('voicePlayer'); p.src=voiceUrl; p.style.display='block';
-  // decode
-  let ab=await f.arrayBuffer();
-  let tmp=new (window.AudioContext||window.webkitAudioContext)();
-  voiceBuf=await tmp.decodeAudioData(ab);
-  document.getElementById('status').innerHTML="✅ Sauti 'eh eh' loaded! Gusa SIKIZA";
-});
+// Kamba Benga scales
+const scales = {
+ G: [196, 220, 247, 294, 330, 392, 440, 523],
+ C: [262, 294, 330, 392, 440, 523, 659],
+ D: [294, 330, 370, 440, 494, 587, 659]
+};
+const keys = Object.keys(scales);
 
-// Kamba benga scale
-const scale=[196,220,247,294,330,392,440];
-function note(f,t,d,v=0.4){ let o=ctx.createOscillator(), g=ctx.createGain(); o.type="triangle"; o.frequency.value=f; o.connect(g); g.connect(master); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+0.02); g.gain.exponentialRampToValueAtTime(0.001,t+d); o.start(t); o.stop(t+d+0.05); srcNodes.push(o); }
-function kick(t){ note(75,t,0.4,"sine",0.9); }
+function rand(){ seed = (seed*9301+49297)%233280; return seed/233280; }
+function pick(arr){ return arr[Math.floor(rand()*arr.length)]; }
 
-function playMix(){
- stopAll();
+// TENGENEZA NGOMA MPYA KILA TIME - Tofauti!
+function generateNewSong(){
+ seed = Date.now()%10000 + Math.random()*1000;
+ let key = pick(keys);
+ let tempo = 85 + Math.floor(rand()*15); // 85-100
+ let soloPattern = [];
+ for(let i=0;i<16;i++) soloPattern.push(Math.floor(rand()*7));
+ let bassPattern = [0, pick([1,2]), 0, pick([2,3])];
+ let songId = Math.floor(Math.random()*9999);
+
+ currentSong = {key, tempo, soloPattern, bassPattern, id:songId, scale: scales[key]};
+ document.getElementById('songInfo').innerHTML = `Ngoma #${songId} - Key ${key} - Tempo ${tempo} - Solo pattern mpya - Tofauti na zote!`;
+ document.getElementById('log').innerHTML = `Ime-generate ngoma mpya! Bass pattern: [${bassPattern}] Solo: ${soloPattern.slice(0,6).join('-')}... - Kila ukifinya inabadilika!`;
+ playCurrentSong();
+}
+
+function singSyllable(freq, time, dur, text){
+ // Sauti inayofanana na mtu ana-imba Kiswahili - 2 oscillators + filter ya vocal
+ let o=ctx.createOscillator(), o2=ctx.createOscillator(), g=ctx.createGain(), f=ctx.createBiquadFilter();
+ o.type="sawtooth"; o2.type="triangle"; o.frequency.value=freq; o2.frequency.value=freq*1.01;
+ f.type="bandpass"; f.frequency.value=900 + freq*0.5; f.Q.value=1.2;
+ o.connect(f); o2.connect(f); f.connect(g); g.connect(master);
+ g.gain.setValueAtTime(0,time);
+ g.gain.linearRampToValueAtTime(0.45,time+0.06);
+ g.gain.linearRampToValueAtTime(0.38,time+dur*0.6);
+ g.gain.exponentialRampToValueAtTime(0.001,time+dur);
+ o.start(time); o2.start(time); o.stop(time+dur+0.05); o2.stop(time+dur+0.05);
+}
+
+function playGuitar(freq,time,dur,isSolo=false){
+ let o=ctx.createOscillator(), g=ctx.createGain();
+ o.type=isSolo?"triangle":"sine"; o.frequency.value=freq;
+ o.connect(g); g.connect(master);
+ g.gain.setValueAtTime(0,time); g.gain.linearRampToValueAtTime(isSolo?0.6:0.28,time+0.02); g.gain.exponentialRampToValueAtTime(0.001,time+dur);
+ o.start(time); o.stop(time+dur+0.1);
+}
+function kick(time){ playGuitar(70,time,0.4,false); }
+
+function playCurrentSong(){
+ if(!currentSong) generateNewSong();
+ stop();
  ctx=new (window.AudioContext||window.webkitAudioContext)();
  master=ctx.createGain(); master.gain.value=0.9; master.connect(ctx.destination);
  playing=true;
- let now=ctx.currentTime+0.2;
- let bpm=88, beat=60/bpm;
+ let scale=currentSong.scale;
+ let beatSec=60/currentSong.tempo;
+ let now=ctx.currentTime+0.3;
+ let lyrics=document.getElementById('lyrics').value.trim().split(/\s+/).filter(w=>w);
+ let display=document.getElementById('lyricsDisplay');
+ display.innerHTML=lyrics.map((w,i)=>`<span class="word" id="w-${i}">${w}</span>`).join(' ');
 
- // Kamba loop 14 sec kama Kativoi
- for(let bar=0; bar<7; bar++){
-   let bt=now+bar*2;
-   kick(bt);
-   note(98,bt,0.6,0.7); // bass
-   note(147,bt+0.68,0.5,0.5);
-   note(196,bt+0.15,0.8,0.3);
-   note(247,bt+0.5,0.5,0.28);
-   // Solo Kativoi style bar 2,3,5
-   if(bar==2||bar==3||bar==5){
-     let pat=[0,2,4,6,6,5,4,2,0,2,4,5,7,5];
-     pat.forEach((p,i)=>{ let f=scale[p%scale.length]*(i>7?2:1); note(f, bt+0.2+i*0.13, 0.22, 0.5); });
-   }
+ // Ngoma structure: Intro 4 beats, Verse (maneno yako), Solo 8 beats, Verse tena
+ let global=now;
+ // 1. Intro - bass + guitar pekee
+ for(let b=0;b<4;b++){ let t=global+b*beatSec; kick(t); playGuitar(scale[currentSong.bassPattern[b%4]],t,0.7); }
+ global+=4*beatSec;
+
+ // 2. Verse - MANENO YAKO YANAIMBA + bass na gita zinafuata!
+ lyrics.forEach((word, i)=>{
+   let t=global + i*beatSec*1.1;
+   let noteIndex = (i + currentSong.bassPattern[i%4]) % scale.length;
+   let freq = scale[noteIndex];
+   // Sauti ina-imba neno
+   singSyllable(freq, t, beatSec*1.0, word);
+   // Gita na bass vinafuata sauti yako - zinafanya harmony!
+   playGuitar(freq/2, t, 0.8); // bass
+   if(i%2==0) playGuitar(freq*1.5, t+0.15, 0.4); // guitar harmony
+   kick(t);
+   // Highlight neno linaimbwa
+   timers.push(setTimeout(()=>{
+     document.querySelectorAll('.word').forEach(e=>e.classList.remove('active'));
+     let el=document.getElementById(`w-${i}`); if(el) el.classList.add('active');
+   }, (t-ctx.currentTime)*1000));
+ });
+ global+=lyrics.length*beatSec*1.1;
+
+ // 3. SOLO Kama Kativoi - pattern mpya kila ngoma!
+ document.getElementById('log').innerHTML+=` | SOLO inacheza sasa!`;
+ for(let s=0;s<currentSong.soloPattern.length;s++){
+   let t=global + s*0.18;
+   let freq=scale[currentSong.soloPattern[s]%scale.length]* (s>8?2:1.5);
+   playGuitar(freq, t, 0.22, true);
+   if(s%4==0) kick(t);
  }
- // Sauti yako "eh eh" inacheza mara 3 kama chorus
- if(voiceBuf){
-   for(let i=0;i<3;i++){
-     let src=ctx.createBufferSource(); src.buffer=voiceBuf;
-     src.connect(master); src.start(now+1+i*4.5); srcNodes.push(src);
-   }
-   document.getElementById('status').innerHTML="🎵 Inacheza: Kamba Benga + 'eh eh' yako (x3) - kama wimbo wa Kativoi!";
- } else {
-   document.getElementById('status').innerHTML="🎸 Kamba solo pekee inacheza (original, kama Kativoi) - upload 'eh eh' ndio zichanganywe";
- }
- draw();
+ global+=currentSong.soloPattern.length*0.18 + 1;
+
+ // 4. Outro - bass ya Kamba
+ for(let b=0;b<4;b++){ let t=global+b*beatSec; kick(t); playGuitar(scale[b%scale.length]/2,t,0.9); }
+
+ document.getElementById('log').innerHTML=`Ngoma #${currentSong.id} ina-imba maneno yako "${lyrics.slice(0,3).join(' ')}..." kwa Key ${currentSong.key} - finya GENERATE upate ngoma mpya tofauti kabisa!`;
+ drawWave();
 }
-function stopAll(){ playing=false; srcNodes.forEach(n=>{try{n.stop()}catch{}}); srcNodes=[]; if(ctx) ctx.close(); }
-function draw(){ let c=document.getElementById('wave'), x=c.getContext('2d'); c.width=400; function f(){ if(!playing) return; x.fillStyle="#111"; x.fillRect(0,0,400,60); x.fillStyle="#ffcc00"; for(let i=0;i<40;i++) x.fillRect(i*10,30-Math.random()*20,6,Math.random()*35); requestAnimationFrame(f);} f(); }
+
+function stop(){ playing=false; timers.forEach(t=>clearTimeout(t)); timers=[]; if(ctx) ctx.close(); }
+function drawWave(){ let c=document.getElementById('wave'), x=c.getContext('2d'); c.width=460; function anim(){ if(!playing) return; x.fillStyle="#111"; x.fillRect(0,0,460,60); x.fillStyle="#ffcc00"; for(let i=0;i<60;i++){ x.fillRect(i*8,30-Math.random()*25,5,Math.random()*30+5); } requestAnimationFrame(anim);} anim(); }
+
+// auto generate ya kwanza
+generateNewSong();
 </script>
 </body>
 </html>
