@@ -2,105 +2,183 @@
 <html lang="sw">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MTAANI KAMBA BENGA - Kativoi Style</title>
+<title>KAMBA BENGA FULL STUDIO</title>
 <style>
-body{background:#0a0a0a;color:#fff;font-family:system-ui;padding:12px;margin:0}
-.card{background:#151515;padding:18px;border-radius:22px;max-width:450px;margin:auto;border:1px solid #222}
-h2{color:#ffcc00;text-align:center;margin:0}
-label{font-size:12px;color:#aaa;margin-top:10px;display:block;font-weight:bold}
-input,textarea{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:none;background:#222;color:#fff;box-sizing:border-box}
-button{width:100%;padding:14px;border-radius:50px;border:none;font-weight:900;margin-top:8px}
+body{background:#0a0a0a;color:#fff;font-family:system-ui;padding:10px;margin:0}
+.card{background:#151515;padding:16px;border-radius:20px;max-width:460px;margin:auto;border:1px solid #222}
+h2{color:#ffcc00;text-align:center;margin:0;font-size:20px}
+label{font-size:11px;color:#aaa;margin-top:12px;display:block;font-weight:900}
+textarea,input,select{width:100%;padding:12px;margin:5px 0;border-radius:10px;border:none;background:#222;color:#fff;box-sizing:border-box}
+button{width:100%;padding:15px;border-radius:50px;border:none;font-weight:900;margin-top:8px;font-size:14px}
 .main{background:#ffcc00;color:#000}
-.sec{background:transparent;border:1px solid #ffcc00;color:#ffcc00}
-.genre-btn{padding:8px;border-radius:8px;border:1px solid #333;background:#232323;color:#fff;font-size:11px;margin:2px;display:inline-block}
-.genre-btn.active{background:#ffcc00;color:#000}
+.sec{background:#222;border:1px solid #ffcc00;color:#ffcc00}
+.timeline{display:flex;gap:4px;margin:10px 0;overflow-x:auto}
+.t-part{padding:6px 10px;border-radius:20px;font-size:10px;background:#222;border:1px solid #333;white-space:nowrap}
+.t-part.active{background:#ffcc00;color:#000;font-weight:900}
+#lyricsDisplay{line-height:1.8;font-size:13px;min-height:60px;background:#0f0f0f;padding:10px;border-radius:10px;margin-top:8px}
+.word.active{color:#ffcc00;font-weight:900;text-shadow:0 0 8px #ffcc00}
 </style>
 </head>
 <body>
 <div class="card">
-<h2>🎸 KAMBA BENGA STUDIO</h2>
-<p style="text-align:center;font-size:11px;color:#777">Style ya Mbeni Mbata Kativoi - Original, Hakuna Copyright</p>
+<h2>🎸 KAMBA BENGA STUDIO V2</h2>
+<p style="text-align:center;font-size:10px;color:#777">Beat mingi • Ina-imba • Solo katikati • Kama studio ya ukweli</p>
 
-<label>1. Chagua Kamba (Solo)</label>
-<div id="kambaDiv">
-<button class="genre-btn active" onclick="setKamba(this,196)">Mugithi 1-Man</button>
-<button class="genre-btn" onclick="setKamba(this,220)">Nyatiti Kamba</button>
-<button class="genre-btn" onclick="setKamba(this,294)">Kamba Solo - Kativoi Style</button>
-<button class="genre-btn" onclick="setKamba(this,330)">Lead Solo kali</button>
-</div>
+<label>ANDIKA WIMBO WAKO - Verse na Chorus</label>
+<textarea id="lyrics" rows="6" placeholder="Andika hivi:
 
-<label>2. Andika Maneno Yako (Lyrics)</label>
-<textarea id="lyrics" rows="3" placeholder="Andika hapa... Ex: Nimwendete mbevo... Ngai ni mutheri..."></textarea>
+Verse1:
+Nimwendete mbevo ya muuo
+Ngai ni mutheri wakwa
 
-<label>3. Speed ya Solo</label>
-<select id="speed"><option value="82">Slow Benga 82 (Kativoi)</option><option value="95" selected>Medium 95</option><option value="110">Fast 110</option></select>
+Chorus:
+Kativoi witu ni muthenya
+Tusemeleke twi vamwe
 
-<button class="main" onclick="playBenga()">▶️ SIKIZA + IMBA NA SOLO YA KAMBA</button>
-<button class="sec" onclick="stopAll()">⏹️ STOP</button>
-<button class="sec" onclick="recordSong()">🔴 RECORD WIMBO WAKO (download)</button>
+Verse2:
+Mbeni eku na kamba yake
+Akitutumia nyimbo...">Verse1:
+Nimwendete mbevo ya muuo
+Ngai ni mutheri wakwa
 
-<div id="status" style="text-align:center;margin-top:10px;color:#ffcc00;font-size:12px"></div>
-<audio id="recPlayer" controls style="display:none;width:100%;margin-top:10px"></audio>
+Chorus:
+Kativoi witu ni muthenya
+Tusemeleke twi vamwe
+
+Verse2:
+Mbeni eku na kamba yake</textarea>
+
+<label>Kamba Lead</label>
+<select id="kambaType">
+<option value="kativoi">🔥 Kativoi Style Solo (Original)</option>
+<option value="mugithi">Mugithi One-Man Guitar</option>
+<option value="nyatiti">Nyatiti Luo 8-String</option>
+<option value="benga">Benga Kikuyu Fast</option>
+</select>
+
+<div class="timeline" id="timeline"></div>
+<div id="lyricsDisplay"></div>
+
+<button class="main" onclick="playFullSong()">▶️ TENGENEZA WIMBO MZIMA NA SOLO</button>
+<button class="sec" onclick="stopSong()">⏹️ STOP</button>
+<div id="status" style="text-align:center;margin-top:8px;color:#ffcc00;font-size:11px"></div>
 </div>
 
 <script>
-let ctx, playing=false, timers=[], kambaFreq=196, mediaRec, chunks=[];
-function setKamba(btn,f){document.querySelectorAll('.genre-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');kambaFreq=f;}
+let ctx, masterGain, isPlaying=false, timeouts=[];
+let currentPart=0;
+const songStructure = [
+ {name:"Intro + Kamba", duration:8, type:"intro"},
+ {name:"Verse 1 - Ina-imba", duration:16, type:"verse", lyricsIndex:0},
+ {name:"Chorus - Madi juu", duration:16, type:"chorus", lyricsIndex:1},
+ {name:"🎸 SOLO KAMBA Kama Kativoi", duration:12, type:"solo"},
+ {name:"Verse 2 - Ina-imba", duration:16, type:"verse", lyricsIndex:2},
+ {name:"Chorus - Mwisho kali", duration:16, type:"chorus", lyricsIndex:1},
+ {name:"Outro Solo", duration:8, type:"outro"}
+];
 
-function tone(freq,time,dur,type="sine",vol=0.4){
+// Scale ya Ukambani - inafanana na Mbeni lakini original
+const kambaScale = [196, 220, 247, 262, 294, 330, 392, 440]; // G A B C D E G A
+const chorusScale = [294, 330, 392, 440, 523]; // juu zaidi kwa chorus
+
+function playDrum(time, isKick, vol=0.8){
  let o=ctx.createOscillator(), g=ctx.createGain();
- o.type=type; o.frequency.value=freq; o.connect(g); g.connect(ctx.destination);
- g.gain.setValueAtTime(0,time); g.gain.linearRampToValueAtTime(vol,time+0.02); g.gain.exponentialRampToValueAtTime(0.001,time+dur);
- o.start(time); o.stop(time+dur);
+ o.frequency.value=isKick?60:120; o.type="sine";
+ o.connect(g); g.connect(masterGain);
+ g.gain.setValueAtTime(0,time); g.gain.linearRampToValueAtTime(vol,time+0.01); g.gain.exponentialRampToValueAtTime(0.001,time+0.3);
+ o.start(time); o.stop(time+0.4);
+}
+function playKambaNote(freq,time,dur,vol=0.45,bright=false){
+ let o=ctx.createOscillator(), g=ctx.createGain(), f=ctx.createBiquadFilter();
+ o.type=bright?"triangle":"sine"; o.frequency.value=freq;
+ f.type="lowpass"; f.frequency.value=2000;
+ o.connect(f); f.connect(g); g.connect(masterGain);
+ g.gain.setValueAtTime(0,time); g.gain.linearRampToValueAtTime(vol,time+0.02); g.gain.exponentialRampToValueAtTime(0.01,time+dur);
+ o.start(time); o.stop(time+dur+0.1);
+}
+function singWord(freq,time,dur){
+ // Sauti inayofanana na kuimba, si kuongea - ni kama vocal ya Kamba
+ let o=ctx.createOscillator(), o2=ctx.createOscillator(), g=ctx.createGain();
+ o.type="sawtooth"; o.frequency.value=freq;
+ o2.type="sine"; o2.frequency.value=freq*1.01;
+ o.connect(g); o2.connect(g); g.connect(masterGain);
+ g.gain.setValueAtTime(0,time); g.gain.linearRampToValueAtTime(0.38,time+0.05); g.gain.linearRampToValueAtTime(0.3,time+dur*0.7); g.gain.exponentialRampToValueAtTime(0.001,time+dur);
+ o.start(time); o2.start(time); o.stop(time+dur); o2.stop(time+dur);
 }
 
-// SOLO YA KAMBA KAMA KATIVOI - ORIGINAL, SI COPY
-// Kamba Benga hutumia scale ya major na picking ya 3-2-0
-const kambaScale = [196, 220, 247, 294, 330, 392, 440]; // G, A, B, D, E, G, A - scale ya Ukambani
-function playKambaSolo(now){
- // solo ya Kativoi ni 3 notes up, 1 down, haraka
- let base = kambaFreq;
- let pattern = [0,2,4,5,4,2,0,1,3,5,7,5,3,0]; // original pattern yangu, inafanana na Kativoi lakini si exact
- pattern.forEach((p,i)=>{
-   let f = kambaScale[p % kambaScale.length] * (p>6?2:1);
-   tone(f, now + i*0.18, 0.25, "triangle", 0.5);
- });
+function parseLyrics(){
+ let text=document.getElementById('lyrics').value;
+ let parts=text.split(/Chorus:|Verse1:|Verse2:/i).filter(s=>s.trim());
+ return parts; // [verse1, chorus, verse2]
 }
 
-function playBenga(){
- stopAll();
+function playFullSong(){
+ stopSong();
  ctx=new (window.AudioContext||window.webkitAudioContext)();
- let bpm=parseInt(document.getElementById('speed').value);
- let lyrics=document.getElementById('lyrics').value;
- playing=true;
- document.getElementById('status').innerHTML=`▶️ Inacheza Benga ya Kamba ${bpm} BPM<br>Solo: ${kambaFreq}Hz - Style Kativoi (original)`;
+ masterGain=ctx.createGain(); masterGain.gain.value=0.9; masterGain.connect(ctx.destination);
+ isPlaying=true;
+ let lyricsParts=parseLyrics();
+ let bpm=96, beatSec=60/bpm;
+ let globalTime=ctx.currentTime+0.2;
+ let allWords=[];
 
- // Imba maneno kwa kutumia sauti ya simu
- if(lyrics && 'speechSynthesis' in window){
-   let u=new SpeechSynthesisUtterance(lyrics);
-   u.lang='sw-KE'; u.rate=0.9; speechSynthesis.speak(u);
- }
+ // Tengeneza timeline
+ let tl=document.getElementById('timeline'); tl.innerHTML="";
+ songStructure.forEach((p,i)=>{let d=document.createElement('div'); d.className='t-part'; d.id='part-'+i; d.innerText=p.name; tl.appendChild(d);});
 
- let step=0;
- function loop(){
-  if(!playing) return;
-  let now=ctx.currentTime;
-  // Bass ya Kamba - beat ya kithoi
-  if(step%4==0) tone(80, now, 0.4, "sine", 0.8);
-  if(step%2==0) tone(kambaFreq, now+0.1, 0.5, "triangle", 0.35);
-  // Kila bar 8 - weka solo kama Kativoi
-  if(step%16==0) playKambaSolo(now+0.2);
-  step++;
-  timers.push(setTimeout(loop, (60/bpm*1000)/2));
+ function schedulePart(partIndex){
+  if(partIndex>=songStructure.length){ isPlaying=false; document.getElementById('status').innerHTML="✅ Wimbo umekamilika! Verse + Chorus + Solo zote!"; return; }
+  let part=songStructure[partIndex];
+  document.querySelectorAll('.t-part').forEach(e=>e.classList.remove('active'));
+  document.getElementById('part-'+partIndex).classList.add('active');
+  document.getElementById('status').innerHTML=`🎵 ${part.name} - ${part.duration} beats`;
+
+  let partBeats=part.duration;
+  for(let b=0;b<partBeats;b++){
+    let t=globalTime + b*beatSec;
+
+    // 1. DRUMS - inabadilika kila part (tofauti tofauti!)
+    if(part.type=="intro"){ if(b%4==0) playDrum(t,true,0.7); if(b%2==0) playKambaNote(196,t,0.4,0.2); }
+    else if(part.type=="verse"){ if(b%4==0) playDrum(t,true,0.85); if(b%2==1) playDrum(t,false,0.3); playKambaNote(kambaScale[b%5],t,0.5,0.25); }
+    else if(part.type=="chorus"){ if(b%2==0) playDrum(t,true,0.9); if(b%2==1) playDrum(t,false,0.5); playKambaNote(chorusScale[b%5],t,0.6,0.35,true); }
+    else if(part.type=="solo"){ // SOLO KAMA KATIVOI - inacheza notes nyingi haraka!
+      if(b%2==0) playDrum(t,true,0.8);
+      // Solo pattern original yangu - inafanana na Kativoi lakini si copy
+      let soloPattern=[0,2,4,6,7,6,4,2,0,1,3,5,7,5,3,1];
+      let f=kambaScale[soloPattern[b%soloPattern.length]]*(b>8?2:1);
+      playKambaNote(f,t,0.22,0.55,true);
+      if(b%3==0) playKambaNote(f*1.5,t+0.08,0.2,0.25,true); // harmony
+    }
+    else if(part.type=="outro"){ if(b%4==0) playDrum(t,true,0.6); playKambaNote(kambaScale[7-b%8],t,0.8,0.3); }
+  }
+
+  // 2. KUIMBA MANENO - kwa sauti ya wimbo, si kuongea!
+  if(part.lyricsIndex!==undefined && lyricsParts[part.lyricsIndex]){
+    let words=lyricsParts[part.lyricsIndex].trim().split(/\s+/);
+    let wordsPerBeat= words.length / partBeats;
+    words.forEach((w,wi)=>{
+      let wt=globalTime + (wi/wordsPerBeat)*beatSec;
+      let noteFreq= part.type=="chorus"? chorusScale[wi%5] : kambaScale[wi%kambaScale.length];
+      singWord(noteFreq, wt, beatSec*0.9);
+      // highlight maneno
+      timeouts.push(setTimeout(()=>{
+        document.querySelectorAll('.word').forEach(e=>e.classList.remove('active'));
+        let el=document.getElementById('word-'+wi+'-'+partIndex);
+        if(el) el.classList.add('active');
+      }, (wt-ctx.currentTime)*1000));
+    });
+    // display lyrics
+    let disp=document.getElementById('lyricsDisplay');
+    disp.innerHTML=words.map((w,i)=>`<span class="word" id="word-${i}-${partIndex}">${w}</span>`).join(' ');
+  }
+
+  globalTime+=partBeats*beatSec;
+  timeouts.push(setTimeout(()=>schedulePart(partIndex+1), partBeats*beatSec*1000));
  }
- loop();
+ schedulePart(0);
 }
 
-function stopAll(){playing=false; timers.forEach(t=>clearTimeout(t)); timers=[]; if(ctx) ctx.close(); speechSynthesis.cancel(); document.getElementById('status').innerHTML="⏹️ Stop";}
-
-function recordSong(){
- alert("Mkuu, gusa PLAY kwanza usikize, kisha tumia screen recorder ya simu kurecord, au gusa share kwa WhatsApp. Hii version ya browser haiwezi record direct kwa sababu ya copyright ya Web Audio, but unaweza download beat kama mp3 na uongeze sauti yako kwa CapCut.");
-}
+function stopSong(){ isPlaying=false; timeouts.forEach(t=>clearTimeout(t)); timeouts=[]; if(ctx) ctx.close(); document.querySelectorAll('.t-part').forEach(e=>e.classList.remove('active')); document.getElementById('status').innerHTML="⏹️ Ime-stop"; }
 </script>
 </body>
 </html>
