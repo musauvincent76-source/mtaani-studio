@@ -1,4 +1,6 @@
 flask
+gunicorn
+replicate
+python-dotenv
 flask-cors
 requests
-replicate
