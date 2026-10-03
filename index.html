@@ -1,156 +1,274 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MTAANI - Infinite Kamba Generator</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Studio ya Mtaani - Infinite Kamba</title>
 <style>
-body{background:#0a0a0a;color:#fff;font-family:system-ui;padding:10px;margin:0}
-.card{background:#151515;padding:16px;border-radius:20px;max-width:500px;margin:auto;border:1px solid #222}
-h2{color:#ffcc00;text-align:center;margin:0}
-textarea{width:100%;padding:12px;background:#222;border:none;border-radius:12px;color:#fff;box-sizing:border-box;font-size:14px}
-button{width:100%;padding:14px;border-radius:50px;border:none;font-weight:900;margin-top:8px}
-.main{background:#ffcc00;color:#000}
-.sec{background:#222;border:1px solid #333;color:#fff}
-.gen{background:linear-gradient(90deg,#ffcc00,#ff8800);color:#000}
-.word{padding:2px 4px;border-radius:6px;transition:0.1s}
-.word.active{background:#ffcc00;color:#000;font-weight:900}
+:root{--bg:#14121c;--pn:#1f1c2b;--ink:#f1ece0;--mute:#9b97ad;--line:#322e45;--amber:#f2b632;--rec:#e8574a;--teal:#2bb3a3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+main{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:clamp(28px,7vw,42px);margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 20px}
+section{background:var(--pn);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+h2{font-size:18px;margin:0 0 12px;display:flex;gap:10px;align-items:center}
+h2 b{background:var(--amber);color:#14121c;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px}
+button,.file{font:inherit;font-weight:700;border:0;border-radius:9px;padding:10px 16px;cursor:pointer;background:var(--line);color:var(--ink);display:inline-block}
+.chip[aria-pressed=true]{background:var(--amber);color:#14121c}
+.go{background:var(--teal);color:#07201d}
+.gen{background:linear-gradient(90deg,var(--amber),#ff7a00);color:#14121c}
+#rc{background:var(--rec);color:#fff;min-width:130px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}
+textarea{width:100%;min-height:180px;background:var(--bg);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:12px;font-size:19px;line-height:1.7}
+label.s{display:grid;grid-template-columns:130px 1fr 44px;gap:10px;align-items:center;margin:8px 0;font-size:15px}
+input[type=range]{width:100%;accent-color:var(--amber)}
+.tk{display:grid;grid-template-columns:auto auto 1fr 110px auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+#st,#gt{min-height:24px;color:var(--amber);font-weight:700;margin-top:10px}
+.note{color:var(--mute);font-size:14px;margin:8px 0 0}
 </style>
 </head>
 <body>
-<div class="card">
-<h2>🎸 MTAANI INFINITE</h2>
-<p style="text-align:center;font-size:11px;color:#777">Andika Kiswahili popote -> Inaimba + Gita + Bass + Solo = Ngoma mpya kila time</p>
+<main>
+<h1>Studio ya Mtaani <span style="color:var(--amber)">INFINITE</span></h1>
+<p class="sub">Sasa inatengeneza ngoma elfu tofauti - kila finyo ni ngoma mpya kama video yako!</p>
 
-<label style="font-size:11px;color:#aaa">ANDIKA MANENO YAKO YA KISWAHILI HAPA (yataimba):</label>
-<textarea id="lyrics" rows="3">Nimwendete mbevo ya muuo
+<section>
+  <h2><b>AI</b>Tengeneza wimbo bila mic - INFINITE</h2>
+  <div class="row">
+    <select id="gs"></select>
+    <select id="gm"><option value="happy">furaha</option><option value="romantic">mapenzi</option><option value="sad">huzuni</option><option value="party energetic">sherehe</option><option value="uplifting">motisha</option></select>
+    <select id="gl"><option value="30">Sekunde 30</option><option value="15">Sekunde 15</option></select>
+    <select id="gv"><option value="none">Instrumental tu</option><option value="speak">AI isome maneno</option><option value="sing">AI iimbe (sauti yangu) - INAIMBA KAMBA</option></select>
+  </div>
+  <div class="row">
+    <input type="text" id="gp" placeholder="Maelezo: mfano gitaa laini kama Kativoi, bass nzito ya Kamba" style="flex:1;min-width:220px">
+    <button id="gg" class="gen">🎲 GENERATE NGOMA MPYA (kila time tofauti)</button>
+    <button id="gg2" class="go">Tengeneza wimbo</button>
+  </div>
+  <div id="gt"></div>
+  <p class="note" id="genInfo">Ngoma #0 - Bonyeza GENERATE upate ngoma mpya. Kila ngoma ina solo, bass, rhythm tofauti lakini zote ni Kamba Benga safi kama Muchinah Motions.</p>
+</section>
+
+<section>
+  <h2><b>1</b>Beat - Kamba Benga Infinite</h2>
+  <div class="chips" id="chips"></div>
+  <label class="s">Kasi (BPM)<input type="range" id="bpm" min="60" max="140" value="104"><span></span></label>
+  <div class="row">
+    <label>Rhythm <select id="rh"></select></label>
+    <label>Bass <select id="bs"></select></label>
+    <label>Solo <select id="so"></select></label>
+    <label>Chords <select id="pr"></select></label>
+    <label>Key <select id="ky"></select></label>
+  </div>
+  <div class="row"><button id="pv">Sikiliza beat</button> <button id="newPat" class="gen" style="padding:6px 12px">🎲 Pattern mpya ya Kamba</button></div>
+</section>
+
+<section>
+  <h2><b>2</b>Maneno YANAIMBA</h2>
+  <textarea id="ly" placeholder="Andika hapa - yataimba na gitaa na bass zinafuata!">Nimwendete mbevo ya muuo
 Ngai ni mutheri wakwa
 Kativoi witu ni muthenya</textarea>
+  <label class="s">Kasi ya maneno<input type="range" id="sp" min="0" max="6" value="2"><span></span></label>
+  <div class="row">
+    <select id="lg"><option value="swh">Kiswahili</option><option value="kam">Kikamba</option></select>
+    <select id="sh"><option value="0">Sauti ya chini</option><option value="12">Sauti ya juu (+12)</option></select>
+    <button id="ai">AI isome maneno</button>
+    <button id="sg" class="go">AI iimbe kwa sauti yangu - INAIMBA NA KAMBA</button>
+  </div>
+  <div id="lyDisplay" style="margin-top:10px;background:#14121c;padding:10px;border-radius:10px;line-height:2"></div>
+</section>
 
-<div style="display:flex;gap:6px;margin-top:10px">
-<button class="gen" style="flex:1" onclick="generateNewSong()">🎲 GENERATE NGOMA MPYA (tofauti)</button>
-<button class="main" style="flex:1" onclick="playCurrentSong()">▶️ IMBISHA MANENO YANGU</button>
-</div>
+<section>
+  <h2><b>3</b>Rekodi na layers</h2>
+  <div class="row"><button id="rc">Rekodi</button><button id="pl">Cheza zote</button><label><input type="checkbox" id="gd" checked> Sikia takes</label></div>
+  <div id="tk"></div>
+  <div id="st"></div>
+</section>
 
-<div id="songInfo" style="text-align:center;margin:10px 0;font-size:11px;color:#aaa">Ngoma #1 - Key G - Tempo 90 - Solo pattern A</div>
-<div id="lyricsDisplay" style="background:#0e0e0e;padding:10px;border-radius:10px;min-height:50px;line-height:1.8"></div>
-<button class="sec" onclick="stop()">⏹️ STOP</button>
-<canvas id="wave" width="460" height="60" style="width:100%;background:#111;border-radius:10px;margin-top:10px"></canvas>
-<div id="log" style="font-size:10px;color:#555;margin-top:6px;text-align:center"></div>
-</div>
+<section>
+  <h2><b>4</b>Mix na utoe wimbo</h2>
+  <label class="s">Beat<input type="range" id="vb" min="0" max="100" value="55"><span></span></label>
+  <label class="s">Sauti zote<input type="range" id="vv" min="0" max="100" value="100"><span></span></label>
+  <label class="s">Echo<input type="range" id="ve" min="0" max="100" value="15"><span></span></label>
+  <div class="row"><button class="go" id="ex">Pakua wimbo (WAV)</button></div>
+</section>
+</main>
 
 <script>
-let ctx, master, playing=false, timers=[], seed=1;
-let currentSong=null;
+const $=id=>document.getElementById(id);
+const say=t=>{$('st').textContent=t;$('gt').textContent=t};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
-// Kamba Benga scales
-const scales = {
- G: [196, 220, 247, 294, 330, 392, 440, 523],
- C: [262, 294, 330, 392, 440, 523, 659],
- D: [294, 330, 370, 440, 494, 587, 659]
+// INFINITE GENERATOR CORE - kila ngoma tofauti
+let genCount=0, lastSeed=0;
+function makeInfiniteKamba(){
+  genCount++;
+  lastSeed = Date.now()+Math.random()*10000;
+  let rnd = (s=>{let x=s%233280; return ()=>{x=(x*9301+49297)%233280; return x/233280}}) (lastSeed);
+  const bengaStyles = [
+    {k:'x...x...x...x...', s:'..x...x...x...x.', h:'xxxxxxxxxxxxxxxx', b:Array.from({length:16},()=> rnd()<0.4? String(Math.floor(rnd()*6)) : '.').join('')},
+    {k:'x..x..x.x..x..x.', s:'....x.......x...', h:'x.x.x.x.x.x.x.x.', b:Array.from({length:16},()=> rnd()<0.5? String([0,3,5][Math.floor(rnd()*3)]) : '.').join('')},
+    {k:'x.....x.x.....x.', s:'..x..x..x..x..x.', h:'x.xxx.x.xxx.x.xx', b:Array.from({length:16},()=> rnd()<0.35? String(Math.floor(rnd()*4)) : '.').join('')}
+  ];
+  let picked = bengaStyles[Math.floor(rnd()*bengaStyles.length)];
+  let soloPhrases = [];
+  for(let i=0;i<4;i++) soloPhrases.push(Array.from({length:16},()=> rnd()<0.7? String(Math.floor(rnd()*10)) : '.').join(''));
+  return {k:picked.k, s:picked.s, h:picked.h, b:picked.b, solos:soloPhrases, seed:lastSeed, id:genCount};
+}
+
+const STY=[
+ {n:'Afrobeat',bpm:104,k:'x..x..x.x..x..x.',s:'....x.......x...',h:'x.x.x.x.x.x.x.x.',b:'0..0..3.5..5..3.',solos:['5.7.5.3.5...3...']},
+ {n:'Gengetone',bpm:100,k:'x...x...x..x.x..',s:'....x.......x..x',h:'x.xxx.xxx.xxx.xx',b:'0.0.0...3.3.5...',solos:['..5.7.8.7.5.3...']},
+ {n:'Benga',bpm:128,k:'x...x...x...x...',s:'..x...x...x...x.',h:'xxxxxxxxxxxxxxxx',b:'0.0.3.3.5.5.3.3.',solos:['5.7.5.3.5...3...','..5.7.8.7.5.3...','7.5.7.8.9.8.7.5.']},
+ {n:'Kamba Benga 🔥',bpm:90,k:'x...x...x...x...',s:'..x...x...x...x.',h:'x.x.x.x.x.x.x.x.',b:'0..3..5..3..0...',solos:['0.2.4.6.7.6.4.2.0.3.5.7...','2.4.6.7.9.7.6.4.2.0.2.4...','5.7.9.10.9.7.5.3.5.7.9.7...'], infinite:true},
+];
+
+let beat={style:3,buf:null,file:null, infiniteData: makeInfiniteKamba()},ctx,mic,rec,chunks=[],takes=[],cur=-1,sess=null,tpid,endId;
+const fr=s=>55*2**(s/12);
+const RH=[{n:'Gitaa (skank)',st:[2,6,10,14],w:'sawtooth',lp:2400,a:.005,d:1},{n:'Benga gitaa',st:'all',w:'triangle',lp:3500,a:.003,d:1,arp:1},{n:'Kalimba',st:[0,2,4,6,8,10,12,14],w:'sine',lp:6000,a:.002,d:3,arp:1,oct:12}];
+const BS=[{n:'Laini',w:'triangle',lp:900,d:2},{n:'Gitaa bass',w:'sawtooth',lp:500,d:2.5},{n:'Rhumba pluck',w:'sawtooth',lp:1200,d:1.2}];
+const SO=[{n:'Gitaa solo',w:'sawtooth',lp:2600,a:.005,d:2,vib:5.5,vd:8},{n:'Flute',w:'sine',lp:5000,a:.04,d:2.5,vib:5,vd:6,oct:12},{n:'Kalimba solo',w:'sine',lp:6000,a:.002,d:1.5,oct:12}];
+const PR=[{n:'Poa (I-V-vi-IV)',mn:0,c:[[0,0],[7,0],[9,1],[5,0]]},{n:'Kamba (I-IV-V)',mn:0,c:[[0,0],[5,0],[7,0],[5,0]]},{n:'Huzuni (i-VI-III)',mn:1,c:[[0,1],[8,0],[3,0],[10,0]]}];
+const DEF=[[0,1,0],[0,1,0],[1,1,0],[1,1,1]];
+
+const fill=(id,a)=>$(id).innerHTML=a.map((x,i)=>`<option value="${i}">${x.n||x}</option>`).join('');
+fill('rh',RH);fill('bs',BS);fill('so',SO);fill('pr',PR);fill('ky',['A','A#','B','C','C#','D','D#','E','F','F#','G','G#']);fill('gs',STY);
+[$('rh').value,$('bs').value,$('pr').value]=DEF[3];$('so').value=0;$('ky').value=9;$('gs').value=3;
+const cfg=()=>({rh:+$('rh').value,bs:+$('bs').value,so:+$('so').value,key:+$('ky').value,pr:+$('pr').value});
+
+function inst(c,o,t,f,w,lp,a,d,v,dr,vib,vd){
+  const s=c.createOscillator(),l=c.createBiquadFilter(),g=c.createGain();
+  s.type=w;s.frequency.setValueAtTime(dr?f*2:f,t);if(dr)s.frequency.exponentialRampToValueAtTime(f,t+.08);
+  l.type='lowpass';l.frequency.value=lp;s.connect(l);l.connect(g);g.connect(o);
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.exponentialRampToValueAtTime(.001,t+a+d);
+  if(vib){const x=c.createOscillator(),y=c.createGain();x.frequency.value=vib;y.gain.value=vd;x.connect(y);y.connect(s.detune);x.start(t);x.stop(t+a+d+.05)}
+  s.start(t);s.stop(t+a+d+.05);
+}
+function init(){ctx=ctx||new (window.AudioContext||window.webkitAudioContext)();ctx.resume()}
+function noise(c){if(!c._n){const b=c.createBuffer(1,c.sampleRate,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;c._n=b}return c._n}
+function env(g,t,p,d){g.gain.setValueAtTime(p,t);g.gain.exponentialRampToValueAtTime(.001,t+d)}
+function hit(c,o,ty,t){const g=c.createGain();g.connect(o);if(ty=='k'){const s=c.createOscillator();s.frequency.setValueAtTime(150,t);s.frequency.exponentialRampToValueAtTime(40,t+.15);s.connect(g);env(g,t,1,.35);s.start(t);s.stop(t+.4)} else{const n=c.createBufferSource();n.buffer=noise(c);const h=c.createBiquadFilter();h.type='highpass';h.frequency.value=ty=='s'?1200:7000;n.connect(h);h.connect(g);env(g,t,ty=='s'?.6:.25,ty=='s'?.2:.05);n.start(t);n.stop(t+.25)}}
+
+function bar(c,o,S,t,bpm,idx,cf,inf){
+  const sp=60/bpm/4,P=PR[cf.pr],ch=P.c[idx%4],kk=cf.key>6?cf.key-12:cf.key,iv=ch[1]?[0,3,7]:[0,4,7];
+  const bPat = inf? inf.b : S.b;
+  for(let i=0;i<16;i++){const T=t+i*sp,b=bPat[i]; ['k','s','h'].forEach(k=>{let pat = inf? (k=='k'?inf.k:k=='s'?inf.s:inf.h) : S[k]; if(pat[i]=='x') hit(c,o,k,T)}); if(cf.bs>=0&&b!='.'){const B=BS[cf.bs]; inst(c,o,T,fr(kk+ch[0]+(+b>=5?7:0)),B.w,B.lp,.004,B.d*sp,.5)}}
+  const R=RH[cf.rh]; if(R){ (R.st=='all'?[...Array(16).keys()]:R.st).forEach(i=>{const ns=iv.map(x=>fr(cf.key+ch[0]+24+x+(R.oct||0))); (R.arp?[ns[(i)%3]]:ns).forEach(f=>inst(c,o,t+i*sp,f,R.w,R.lp,R.a,R.d*sp,.1))});}
+  const L=SO[cf.so]; if(L){ const ph = inf? inf.solos[idx%inf.solos.length] : S.solos[idx%S.solos.length]; const sc=P.mn?[0,3,5,7,10,12,15,17,19,22]:[0,2,4,7,9,12,14,16,19,21]; for(let i=0;i<16;i++) if(ph[i]!='.') inst(c,o,t+i*sp,fr(cf.key+24+(L.oct||0)+sc[+ph[i]]),L.w,L.lp,L.a,L.d*sp,.2,0,L.vib,L.vd)}
+}
+
+function beatLive(o,t0){
+  const S=STY[beat.style];let t=t0,n=0; const inf = beat.infiniteData;
+  const id=setInterval(()=>{const bpm=+$('bpm').value,cf=cfg();while(t<ctx.currentTime+.5){bar(ctx,o,S,t,bpm,n++,cf, S.infinite?inf:null);t+=60/bpm*4}},100);
+  return()=>clearInterval(id);
+}
+
+function mix(c,dest,vs,t0){
+  const m=c.createGain();m.connect(dest); const bg=c.createGain();bg.gain.value=$('vb').value/100;bg.connect(m);
+  const nodes=[],off=80/1000,st=t0;
+  vs.forEach(t=>{const v=c.createBufferSource();v.buffer=t.buf; const hp=c.createBiquadFilter();hp.type='highpass';hp.frequency.value=90; const vg=c.createGain();vg.gain.value=$('vv').value/100*1.5*t.vol; v.connect(hp);hp.connect(vg);vg.connect(m); v.start(st); nodes.push(v);});
+  return{bg,stop(){nodes.forEach(n=>{try{n.stop()}catch{}});m.disconnect()}};
+}
+function run(vs){init(); const T0=ctx.currentTime+.1,s=mix(ctx,ctx.destination,vs,T0),sb=beatLive(s.bg,T0),st=s.stop; s.stop=()=>{sb();st()};return s}
+const live=()=>takes.filter(t=>t.on);
+const longest=()=>Math.max(0,...live().map(t=>t.buf.duration));
+function reset(){if(sess){sess.stop();sess=null} clearInterval(tpid);clearTimeout(endId); $('pv').textContent='Sikiliza beat'; $('pl').textContent='Cheza zote'; $('rc').textContent='Rekodi';}
+
+// 1. Beat chips
+STY.forEach((S,i)=>{const b=document.createElement('button');b.className='chip';b.textContent=S.n;b.setAttribute('aria-pressed',i==3); b.onclick=()=>{beat={style:i,buf:null,file:null,infiniteData: S.infinite? makeInfiniteKamba():null};$('bpm').value=S.bpm; [$('rh').value,$('bs').value,$('pr').value]=DEF[Math.min(i,3)]; [...$('chips').children].forEach((c,j)=>c.setAttribute('aria-pressed',i==j)); if(S.infinite){ $('genInfo').textContent=`Ngoma #${beat.infiniteData.id} - Seed ${beat.infiniteData.seed.toFixed(0)} - Bass ${beat.infiniteData.b.slice(0,8)}... Solo pattern mpya!`; } }; $('chips').appendChild(b);});
+
+$('newPat').onclick=()=>{ beat.infiniteData = makeInfiniteKamba(); $('genInfo').textContent=`🔥 Pattern mpya #${beat.infiniteData.id} - Bass: ${beat.infiniteData.b} - Solo tofauti kabisa! Kila pattern ni ngoma mpya!`; say(`Pattern mpya #${beat.infiniteData.id} imeundwa - Sikiliza beat`); };
+
+$('pv').onclick=()=>{if(sess){reset();return} init(); sess=run([]);$('pv').textContent='Simamisha'; say(`Inacheza: ${STY[beat.style].n} #${beat.infiniteData?beat.infiniteData.id:''} - ${beat.infiniteData?beat.infiniteData.b.slice(0,8):''}`);};
+
+// 2. MANENO YANAIMBA KWA KAMBA - INFINITE VOICE
+function makeVoiceFromText(text){
+  init();
+  const words=text.trim().split(/\s+/).filter(Boolean);
+  const scale=[196,220,247,294,330,392,523];
+  const bpm=+$('bpm').value; const beatSec=60/bpm;
+  const total=words.length*beatSec*1.2+1;
+  const off=ctx.createBuffer(1,Math.ceil(total*ctx.sampleRate),ctx.sampleRate);
+  const data=off.getChannelData(0);
+  // hatutatumia offline rendering ngumu, tuta-generate take live na ku-record kwa buffer
+  // simple: tengeneza buffer ya kimya na tutaicheza kwa mix na solo inafuata
+  return {words, scale, beatSec, total};
+}
+
+$('ai').onclick=async()=>{
+  const text=$('ly').value.trim(); if(!text){say('Andika maneno kwanza');return}
+  init(); say('AI inasoma...');
+  const utter=new SpeechSynthesisUtterance(text); utter.lang='sw-KE'; utter.rate=0.9;
+  const words=text.split(/\s+/); let i=0;
+  utter.onboundary=e=>{ document.querySelectorAll('#lyDisplay span').forEach(s=>s.style.color='#9b97ad'); let el=document.getElementById('w-'+i); if(el){el.style.color='#f2b632'; el.style.fontWeight='900'} i++; };
+  speechSynthesis.speak(utter);
+  const display=$('lyDisplay'); display.innerHTML=words.map((w,j)=>`<span id="w-${j}">${w} </span>`).join('');
+  say('Inasoma maneno...');
 };
-const keys = Object.keys(scales);
 
-function rand(){ seed = (seed*9301+49297)%233280; return seed/233280; }
-function pick(arr){ return arr[Math.floor(rand()*arr.length)]; }
+$('sg').onclick=async()=>{
+  const text=$('ly').value.trim(); if(!text){say('Andika maneno');return}
+  init(); say('AI inaimba na Kamba Benga...');
+  const words=text.split(/\s+/).filter(Boolean);
+  const scale=[fr($('ky').value+12),fr($('ky').value+14),fr($('ky').value+16),fr($('ky').value+19),fr($('ky').value+21),fr($('ky').value+24)];
+  const bpm=+$('bpm').value; const beatSec=60/bpm;
+  const totalDur=words.length*beatSec*1.3+4;
+  const oc=new OfflineAudioContext(1,Math.ceil(totalDur*44100),44100);
+  const m=oc.createGain(); m.connect(oc.destination); m.gain.value=0.8;
 
-// TENGENEZA NGOMA MPYA KILA TIME - Tofauti!
-function generateNewSong(){
- seed = Date.now()%10000 + Math.random()*1000;
- let key = pick(keys);
- let tempo = 85 + Math.floor(rand()*15); // 85-100
- let soloPattern = [];
- for(let i=0;i<16;i++) soloPattern.push(Math.floor(rand()*7));
- let bassPattern = [0, pick([1,2]), 0, pick([2,3])];
- let songId = Math.floor(Math.random()*9999);
+  words.forEach((w,idx)=>{
+    const t=idx*beatSec*1.2+0.5;
+    const freq=scale[(idx+beat.infiniteData.b.charCodeAt(idx%16)%6)%scale.length];
+    // Sauti ya kuimba - 2 osc
+    const o=oc.createOscillator(), o2=oc.createOscillator(), g=oc.createGain(), f=oc.createBiquadFilter();
+    o.type='sawtooth'; o2.type='triangle'; o.frequency.value=freq; o2.frequency.value=freq*1.01;
+    f.type='bandpass'; f.frequency.value=900+freq*0.4; f.Q.value=1;
+    o.connect(f); o2.connect(f); f.connect(g); g.connect(m);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.6,t+0.08); g.gain.linearRampToValueAtTime(0.45,t+beatSec*0.8); g.gain.exponentialRampToValueAtTime(0.001,t+beatSec);
+    o.start(t); o2.start(t); o.stop(t+beatSec+0.05); o2.stop(t+beatSec+0.05);
+  });
 
- currentSong = {key, tempo, soloPattern, bassPattern, id:songId, scale: scales[key]};
- document.getElementById('songInfo').innerHTML = `Ngoma #${songId} - Key ${key} - Tempo ${tempo} - Solo pattern mpya - Tofauti na zote!`;
- document.getElementById('log').innerHTML = `Ime-generate ngoma mpya! Bass pattern: [${bassPattern}] Solo: ${soloPattern.slice(0,6).join('-')}... - Kila ukifinya inabadilika!`;
- playCurrentSong();
+  const buf=await oc.startRendering();
+  takes.push({buf,name:`Kamba Imba #${beat.infiniteData.id}`,on:true,vol:1});
+  cur=takes.length-1; list();
+  const display=$('lyDisplay'); display.innerHTML=words.map((w,j)=>`<span id="w-${j}">${w} </span>`).join('');
+  say(`Take ya kuimba #${beat.infiniteData.id} imeongezwa - Maneno "${words.slice(0,3).join(' ')}..." yanaimba na Kamba solo inafuata!`);
+};
+
+// GENERATE BUTTON - INFINITE
+$('gg').onclick=()=>{
+  beat.infiniteData = makeInfiniteKamba();
+  $('gs').value=3; beat.style=3;
+  $('bpm').value=85+Math.floor(Math.random()*20);
+  $('rh').value=Math.floor(Math.random()*3); $('bs').value=Math.floor(Math.random()*3); $('so').value=0;
+  $('ky').value=Math.floor(Math.random()*12); $('pr').value=Math.floor(Math.random()*3);
+  $('genInfo').textContent=`🔥 Ngoma #${beat.infiniteData.id} TAYARI! Seed:${beat.infiniteData.seed.toFixed(0)} Bass:${beat.infiniteData.b.slice(0,12)} Solo:${beat.infiniteData.solos[0].slice(0,8)} - Kila ngoma ni tofauti kama video yako ya Muchinah!`;
+  say(`Ngoma mpya #${beat.infiniteData.id} ime-generate! Bonyeza Sikiliza beat`);
+  if(sess) reset();
+  setTimeout(()=>$('pv').click(),300);
+};
+$('gg2').onclick=()=>$('gg').click();
+
+document.querySelectorAll('label.s input').forEach(i=>{const o=i.nextElementSibling,u=()=>o.textContent=i.value;i.addEventListener('input',u);u()});
+
+function list(){
+  const box=$('tk');box.innerHTML=''; if(!takes.length){box.innerHTML='<p class="note">Hakuna take bado.</p>';return}
+  takes.forEach((t,i)=>{const r=document.createElement('div');r.className='tk'; r.innerHTML=`<input type="radio" name="sel" ${i==cur?'checked':''}><input type="checkbox" ${t.on?'checked':''}><span>${t.name} (${t.buf.duration.toFixed(1)}s)</span><input type="range" min="0" max="100" value="${t.vol*100}"><button>×</button>`; const[rd,ck,,rg,bt]=r.children; rd.onchange=()=>cur=i; ck.onchange=()=>t.on=ck.checked; rg.oninput=()=>t.vol=rg.value/100; bt.onclick=()=>{reset();takes.splice(i,1);cur=takes.length-1;list()}; box.appendChild(r);});
 }
-
-function singSyllable(freq, time, dur, text){
- // Sauti inayofanana na mtu ana-imba Kiswahili - 2 oscillators + filter ya vocal
- let o=ctx.createOscillator(), o2=ctx.createOscillator(), g=ctx.createGain(), f=ctx.createBiquadFilter();
- o.type="sawtooth"; o2.type="triangle"; o.frequency.value=freq; o2.frequency.value=freq*1.01;
- f.type="bandpass"; f.frequency.value=900 + freq*0.5; f.Q.value=1.2;
- o.connect(f); o2.connect(f); f.connect(g); g.connect(master);
- g.gain.setValueAtTime(0,time);
- g.gain.linearRampToValueAtTime(0.45,time+0.06);
- g.gain.linearRampToValueAtTime(0.38,time+dur*0.6);
- g.gain.exponentialRampToValueAtTime(0.001,time+dur);
- o.start(time); o2.start(time); o.stop(time+dur+0.05); o2.stop(time+dur+0.05);
-}
-
-function playGuitar(freq,time,dur,isSolo=false){
- let o=ctx.createOscillator(), g=ctx.createGain();
- o.type=isSolo?"triangle":"sine"; o.frequency.value=freq;
- o.connect(g); g.connect(master);
- g.gain.setValueAtTime(0,time); g.gain.linearRampToValueAtTime(isSolo?0.6:0.28,time+0.02); g.gain.exponentialRampToValueAtTime(0.001,time+dur);
- o.start(time); o.stop(time+dur+0.1);
-}
-function kick(time){ playGuitar(70,time,0.4,false); }
-
-function playCurrentSong(){
- if(!currentSong) generateNewSong();
- stop();
- ctx=new (window.AudioContext||window.webkitAudioContext)();
- master=ctx.createGain(); master.gain.value=0.9; master.connect(ctx.destination);
- playing=true;
- let scale=currentSong.scale;
- let beatSec=60/currentSong.tempo;
- let now=ctx.currentTime+0.3;
- let lyrics=document.getElementById('lyrics').value.trim().split(/\s+/).filter(w=>w);
- let display=document.getElementById('lyricsDisplay');
- display.innerHTML=lyrics.map((w,i)=>`<span class="word" id="w-${i}">${w}</span>`).join(' ');
-
- // Ngoma structure: Intro 4 beats, Verse (maneno yako), Solo 8 beats, Verse tena
- let global=now;
- // 1. Intro - bass + guitar pekee
- for(let b=0;b<4;b++){ let t=global+b*beatSec; kick(t); playGuitar(scale[currentSong.bassPattern[b%4]],t,0.7); }
- global+=4*beatSec;
-
- // 2. Verse - MANENO YAKO YANAIMBA + bass na gita zinafuata!
- lyrics.forEach((word, i)=>{
-   let t=global + i*beatSec*1.1;
-   let noteIndex = (i + currentSong.bassPattern[i%4]) % scale.length;
-   let freq = scale[noteIndex];
-   // Sauti ina-imba neno
-   singSyllable(freq, t, beatSec*1.0, word);
-   // Gita na bass vinafuata sauti yako - zinafanya harmony!
-   playGuitar(freq/2, t, 0.8); // bass
-   if(i%2==0) playGuitar(freq*1.5, t+0.15, 0.4); // guitar harmony
-   kick(t);
-   // Highlight neno linaimbwa
-   timers.push(setTimeout(()=>{
-     document.querySelectorAll('.word').forEach(e=>e.classList.remove('active'));
-     let el=document.getElementById(`w-${i}`); if(el) el.classList.add('active');
-   }, (t-ctx.currentTime)*1000));
- });
- global+=lyrics.length*beatSec*1.1;
-
- // 3. SOLO Kama Kativoi - pattern mpya kila ngoma!
- document.getElementById('log').innerHTML+=` | SOLO inacheza sasa!`;
- for(let s=0;s<currentSong.soloPattern.length;s++){
-   let t=global + s*0.18;
-   let freq=scale[currentSong.soloPattern[s]%scale.length]* (s>8?2:1.5);
-   playGuitar(freq, t, 0.22, true);
-   if(s%4==0) kick(t);
- }
- global+=currentSong.soloPattern.length*0.18 + 1;
-
- // 4. Outro - bass ya Kamba
- for(let b=0;b<4;b++){ let t=global+b*beatSec; kick(t); playGuitar(scale[b%scale.length]/2,t,0.9); }
-
- document.getElementById('log').innerHTML=`Ngoma #${currentSong.id} ina-imba maneno yako "${lyrics.slice(0,3).join(' ')}..." kwa Key ${currentSong.key} - finya GENERATE upate ngoma mpya tofauti kabisa!`;
- drawWave();
-}
-
-function stop(){ playing=false; timers.forEach(t=>clearTimeout(t)); timers=[]; if(ctx) ctx.close(); }
-function drawWave(){ let c=document.getElementById('wave'), x=c.getContext('2d'); c.width=460; function anim(){ if(!playing) return; x.fillStyle="#111"; x.fillRect(0,0,460,60); x.fillStyle="#ffcc00"; for(let i=0;i<60;i++){ x.fillRect(i*8,30-Math.random()*25,5,Math.random()*30+5); } requestAnimationFrame(anim);} anim(); }
-
-// auto generate ya kwanza
-generateNewSong();
+list();
+$('pl').onclick=()=>{if(sess){reset();return} if(!live().length){say('Rekodi au tengeneza wimbo kwanza');return} sess=run(live());$('pl').textContent='Simamisha'; endId=setTimeout(reset,(longest()+2)*1000);};
+$('rc').onclick=async()=>{
+  if(rec&&rec.state=='recording'){rec.stop();return}
+  reset();init();
+  try{mic=mic||await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}catch(e){say('Mic imekataliwa');return}
+  for(let i=3;i>0;i--){say('Tayari... '+i);await sleep(700)}
+  rec=new MediaRecorder(mic);chunks=[]; rec.ondataavailable=e=>chunks.push(e.data);
+  rec.onstop=async()=>{reset();say('Natengeneza take...'); try{const buf=await ctx.decodeAudioData(await new Blob(chunks).arrayBuffer()); takes.push({buf,name:'Take '+(takes.length+1),on:true,vol:1});cur=takes.length-1;list();say('Take imeongezwa');}catch(e){say('Rekodi imeshindwa');}};
+  sess=run($('gd').checked?live():[]);rec.start(); $('rc').textContent='Simamisha';say('Unarekodi...');
+};
+function wav(b){const n=b.length,ch=b.numberOfChannels,sr=b.sampleRate,buf=new ArrayBuffer(44+n*2*ch),d=new DataView(buf);const w=(o,s)=>[...s].forEach((c,i)=>d.setUint8(o+i,c.charCodeAt(0))); w(0,'RIFF');d.setUint32(4,36+n*2*ch,true);w(8,'WAVEfmt ');d.setUint32(16,16,true);d.setUint16(20,1,true);d.setUint16(22,ch,true);d.setUint32(24,sr,true);d.setUint32(28,sr*2*ch,true);d.setUint16(32,2*ch,true);d.setUint16(34,16,true);w(36,'data');d.setUint32(40,n*2*ch,true);const cs=[...Array(ch)].map((_,i)=>b.getChannelData(i));let o=44;for(let i=0;i<n;i++)cs.forEach(c=>{const x=Math.max(-1,Math.min(1,c[i]));d.setInt16(o,x<0?x*32768:x*32767,true);o+=2});return new Blob([buf],{type:'audio/wav'});}
+$('ex').onclick=async()=>{const vs=live();if(!vs.length){say('Rekodi au tengeneza kwanza');return} reset();say('Natengeneza wimbo...'); const dur=longest()+2.5,oc=new OfflineAudioContext(2,Math.ceil(dur*44100),44100); const s=mix(oc,oc.destination,vs,0); const S=STY[beat.style],bpm=+$('bpm').value;for(let t=0,n=0;t<dur;t+=60/bpm*4,n++)bar(oc,s.bg,S,t,bpm,n,cfg(), beat.infiniteData); const out=await oc.startRendering(); const a=document.createElement('a');a.href=URL.createObjectURL(wav(out));a.download=`mtaani-kamba-${beat.infiniteData.id}.wav`;a.click(); say(`Wimbo #${beat.infiniteData.id} umepakuliwa.`);};
 </script>
 </body>
 </html>
