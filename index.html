@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MTAANI BEATS KE - Na Kamba</title>
+<style>
+body{background:#0a0a0a;color:#fff;font-family:system-ui;padding:12px;margin:0}
+.card{background:#151515;padding:18px;border-radius:22px;max-width:440px;margin:auto;border:1px solid #222}
+h2{margin:0;color:#25D366;text-align:center}
+.genre-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0}
+.genre-btn{padding:11px;border-radius:10px;border:1px solid #333;background:#232323;color:#fff;font-size:12px}
+.genre-btn.active{background:#25D366;color:#000;font-weight:900}
+.genre-btn.kamba-active{background:#ffcc00;color:#000;font-weight:900;border-color:#ffcc00}
+input,textarea,select{width:100%;padding:12px;margin:7px 0;border-radius:10px;border:none;background:#222;color:#fff;box-sizing:border-box}
+button.main{background:#25D366;color:#000;padding:16px;width:100%;border:none;border-radius:50px;font-weight:900;font-size:16px;margin-top:12px}
+audio{width:100%;margin-top:10px}
+.small{font-size:11px;color:#777;text-align:center}
+label{font-size:12px;font-weight:bold;margin-top:12px;display:block;color:#aaa}
+</style>
+</head>
+<body>
+<div class="card">
+<h2>🎧 MTAANI BEATS KE</h2>
+<p class="small">Afrobit ya Kenya + Kamba zote</p>
+
+<label>1. AINA YA NYIMBO</label>
+<div class="genre-grid" id="genres"></div>
+
+<label>2. 🎸 KAMBA - STRING INSTRUMENTS (chagua 3 max)</label>
+<div class="genre-grid" id="kambaGrid"></div>
+<p class="small" id="kambaSelected">Hakuna kamba</p>
+
+<label>3. Upload Sample (Gallery)</label>
+<input type="file" id="sample" accept="audio/*,video/*">
+
+<label>4. Prompt (inajijaza)</label>
+<textarea id="prompt" rows="4"></textarea>
+
+<label>5. Style ya Msanii</label>
+<select id="artist">
+<option value="">-- Style --</option>
+<option>Bien</option><option>Nyashinski</option><option>Mejja</option>
+<option>Toxic Lyrikali</option><option>Samidoh</option><option>Prince Indah</option>
+<option>Buruklyn Boyz</option><option>Wakadinali</option><option>Otile Brown</option>
+</select>
+
+<button class="main" onclick="generate()">🎵 TENGENEZA</button>
+<div id="status" style="text-align:center;margin-top:10px;font-size:13px;color:#25D366"></div>
+<audio id="player" controls style="display:none"></audio>
+<button id="dl" style="display:none;width:100%;margin-top:8px;padding:12px;border-radius:10px;background:transparent;border:1px solid #25D366;color:#25D366">⬇️ Download MP3</button>
+</div>
+
+<script>
+const kenyaGenres={
+"Arbantone 🔥":"Arbantone 95bpm sheng heavy bass",
+"Gengetone":"Gengetone Nairobi 100bpm matatu",
+"Genge":"Genge classic Jua Cali mtaa",
+"Mugithi":"Mugithi Kikuyu one-man guitar 80bpm",
+"Ohangla":"Ohangla Luo nyatiti drums Prince Indah",
+"Kapuka":"Kapuka gospel fast",
+"Bongo Flava":"Bongo Flava romantic 90bpm",
+"Amapiano KE":"Kenyan Amapiano log drums",
+"Taarab":"Taarab coastal oud Swahili love",
+"Gospel KE":"Kenyan Gospel choir afro drums",
+"Drill KE":"Nairobi Drill Wakadinali 140bpm",
+"Mukangala":"Mukangala Luhya isukuti"
+};
+const kambaInstruments={
+"🎸 Acoustic":"acoustic guitar kamba laini",
+"🎸 Electric":"electric guitar solo kamba kali",
+"🪕 Nyatiti":"nyatiti Luo 8-string lyre",
+"🎻 Orutu":"orutu Luo 1-string fiddle kamba moja",
+"🎻 Zeze":"zeze coastal fiddle",
+"🪕 Oud":"oud Arabic lute Taarab",
+"🎸 Bass Nzito":"deep bass guitar kamba nzito",
+"🎸 Mugithi Gita":"mugithi one-man guitar Kikuyu",
+"🪕 Isukuti String":"isukuti Luhya string",
+"🎸 Nyatiti+Acoustic":"nyatiti + acoustic fusion"
+};
+let selGenre="", selKamba=[], selKambaDesc=[];
+const gGrid=document.getElementById('genres');
+Object.keys(kenyaGenres).forEach(g=>{
+ let b=document.createElement('button'); b.className='genre-btn'; b.innerText=g;
+ b.onclick=()=>{document.querySelectorAll('#genres.genre-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); selGenre=g; updatePrompt();};
+ gGrid.appendChild(b);
+});
+const kGrid=document.getElementById('kambaGrid');
+Object.keys(kambaInstruments).forEach(k=>{
+ let b=document.createElement('button'); b.className='genre-btn'; b.innerText=k;
+ b.onclick=()=>{
+  if(selKamba.includes(k)){selKamba=selKamba.filter(x=>x!=k); selKambaDesc=selKambaDesc.filter(x=>x!=kambaInstruments[k]); b.classList.remove('kamba-active');}
+  else{if(selKamba.length>=3){alert("Max 3 kamba mkuu!");return;} selKamba.push(k); selKambaDesc.push(kambaInstruments[k]); b.classList.add('kamba-active');}
+  document.getElementById('kambaSelected').innerText=selKamba.length?selKamba.join(', '):'Hakuna kamba'; updatePrompt();
+ };
+ kGrid.appendChild(b);
+});
+function updatePrompt(){
+ let base=selGenre?kenyaGenres[selGenre]:"";
+ if(selKambaDesc.length) base+=(base?" | ":"")+"KAMBA: "+selKambaDesc.join(', ');
+ document.getElementById('prompt').value=base;
+}
+function generate(){
+ if(!selGenre){alert("Chagua aina kwanza!");return;}
+ let prompt=document.getElementById('prompt').value;
+ let artist=document.getElementById('artist').value;
+ let file=document.getElementById('sample').files[0];
+ if(artist) prompt+=", style ya "+artist;
+ let st=document.getElementById('status');
+ st.innerHTML=`⏳ Inatengeneza ${selGenre} na ${selKamba.join(', ')||'kamba default'}...`;
+ setTimeout(()=>{
+  st.innerHTML=`✅ Tayari! ${selGenre} + ${selKamba.join(', ')}`;
+  let pl=document.getElementById('player');
+  pl.src=file?URL.createObjectURL(file):"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+  pl.style.display='block'; document.getElementById('dl').style.display='block';
+ },2500);
+}
+document.getElementById('dl').onclick=()=>{
+ let a=document.createElement('a'); a.href=document.getElementById('player').src;
+ a.download=`Mtaani-${selGenre}-${selKamba.join('-')}.mp3`; a.click();
+};
+</script>
+</body>
+  </html>
