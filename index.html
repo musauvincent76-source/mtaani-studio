@@ -1,184 +1,89 @@
 <!DOCTYPE html>
-<html lang="sw">
+<html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>KAMBA BENGA FULL STUDIO</title>
+<title>KAMBA STUDIO - Sauti Yako Real</title>
 <style>
-body{background:#0a0a0a;color:#fff;font-family:system-ui;padding:10px;margin:0}
-.card{background:#151515;padding:16px;border-radius:20px;max-width:460px;margin:auto;border:1px solid #222}
-h2{color:#ffcc00;text-align:center;margin:0;font-size:20px}
-label{font-size:11px;color:#aaa;margin-top:12px;display:block;font-weight:900}
-textarea,input,select{width:100%;padding:12px;margin:5px 0;border-radius:10px;border:none;background:#222;color:#fff;box-sizing:border-box}
-button{width:100%;padding:15px;border-radius:50px;border:none;font-weight:900;margin-top:8px;font-size:14px}
+body{background:#0a0a0a;color:#fff;font-family:system-ui;padding:12px;margin:0}
+.card{background:#151515;padding:18px;border-radius:20px;max-width:440px;margin:auto;border:1px solid #222;text-align:center}
+button{width:100%;padding:16px;border-radius:50px;border:none;font-weight:900;margin-top:10px;font-size:15px}
 .main{background:#ffcc00;color:#000}
-.sec{background:#222;border:1px solid #ffcc00;color:#ffcc00}
-.timeline{display:flex;gap:4px;margin:10px 0;overflow-x:auto}
-.t-part{padding:6px 10px;border-radius:20px;font-size:10px;background:#222;border:1px solid #333;white-space:nowrap}
-.t-part.active{background:#ffcc00;color:#000;font-weight:900}
-#lyricsDisplay{line-height:1.8;font-size:13px;min-height:60px;background:#0f0f0f;padding:10px;border-radius:10px;margin-top:8px}
-.word.active{color:#ffcc00;font-weight:900;text-shadow:0 0 8px #ffcc00}
+.sec{background:transparent;border:1px solid #ffcc00;color:#ffcc00}
+audio{width:100%;margin-top:10px}
+.wave{width:100%;height:60px;background:#111;border-radius:10px;margin:10px 0}
 </style>
 </head>
 <body>
 <div class="card">
-<h2>🎸 KAMBA BENGA STUDIO V2</h2>
-<p style="text-align:center;font-size:10px;color:#777">Beat mingi • Ina-imba • Solo katikati • Kama studio ya ukweli</p>
+<h2 style="color:#ffcc00">🎸 KAMBA + SAUTI YAKO</h2>
+<p style="font-size:11px;color:#888">Sauti yako "eh eh" + Solo Kativoi original (hakuna copyright)</p>
 
-<label>ANDIKA WIMBO WAKO - Verse na Chorus</label>
-<textarea id="lyrics" rows="6" placeholder="Andika hivi:
+<input type="file" id="voice" accept="audio/*" style="padding:10px;background:#222;border-radius:10px;width:100%;box-sizing:border-box">
+<audio id="voicePlayer" controls style="display:none"></audio>
+<canvas id="wave" class="wave"></canvas>
 
-Verse1:
-Nimwendete mbevo ya muuo
-Ngai ni mutheri wakwa
+<button class="main" onclick="playMix()">▶️ SIKIZA: KAMBA + "eh eh" PAMOJA</button>
+<button class="sec" onclick="stopAll()">⏹️ STOP</button>
 
-Chorus:
-Kativoi witu ni muthenya
-Tusemeleke twi vamwe
-
-Verse2:
-Mbeni eku na kamba yake
-Akitutumia nyimbo...">Verse1:
-Nimwendete mbevo ya muuo
-Ngai ni mutheri wakwa
-
-Chorus:
-Kativoi witu ni muthenya
-Tusemeleke twi vamwe
-
-Verse2:
-Mbeni eku na kamba yake</textarea>
-
-<label>Kamba Lead</label>
-<select id="kambaType">
-<option value="kativoi">🔥 Kativoi Style Solo (Original)</option>
-<option value="mugithi">Mugithi One-Man Guitar</option>
-<option value="nyatiti">Nyatiti Luo 8-String</option>
-<option value="benga">Benga Kikuyu Fast</option>
-</select>
-
-<div class="timeline" id="timeline"></div>
-<div id="lyricsDisplay"></div>
-
-<button class="main" onclick="playFullSong()">▶️ TENGENEZA WIMBO MZIMA NA SOLO</button>
-<button class="sec" onclick="stopSong()">⏹️ STOP</button>
-<div id="status" style="text-align:center;margin-top:8px;color:#ffcc00;font-size:11px"></div>
+<div id="status" style="margin-top:10px;color:#ffcc00;font-size:12px">Upload sauti yako ya "eh eh" kwanza, ama gusa play bila ku-upload uskie Kamba solo pekee</div>
 </div>
 
 <script>
-let ctx, masterGain, isPlaying=false, timeouts=[];
-let currentPart=0;
-const songStructure = [
- {name:"Intro + Kamba", duration:8, type:"intro"},
- {name:"Verse 1 - Ina-imba", duration:16, type:"verse", lyricsIndex:0},
- {name:"Chorus - Madi juu", duration:16, type:"chorus", lyricsIndex:1},
- {name:"🎸 SOLO KAMBA Kama Kativoi", duration:12, type:"solo"},
- {name:"Verse 2 - Ina-imba", duration:16, type:"verse", lyricsIndex:2},
- {name:"Chorus - Mwisho kali", duration:16, type:"chorus", lyricsIndex:1},
- {name:"Outro Solo", duration:8, type:"outro"}
-];
+let ctx, master, playing=false, voiceBuf=null, srcNodes=[];
+let voiceUrl=null;
 
-// Scale ya Ukambani - inafanana na Mbeni lakini original
-const kambaScale = [196, 220, 247, 262, 294, 330, 392, 440]; // G A B C D E G A
-const chorusScale = [294, 330, 392, 440, 523]; // juu zaidi kwa chorus
+document.getElementById('voice').addEventListener('change', async e=>{
+  let f=e.target.files[0]; if(!f) return;
+  voiceUrl=URL.createObjectURL(f);
+  let p=document.getElementById('voicePlayer'); p.src=voiceUrl; p.style.display='block';
+  // decode
+  let ab=await f.arrayBuffer();
+  let tmp=new (window.AudioContext||window.webkitAudioContext)();
+  voiceBuf=await tmp.decodeAudioData(ab);
+  document.getElementById('status').innerHTML="✅ Sauti 'eh eh' loaded! Gusa SIKIZA";
+});
 
-function playDrum(time, isKick, vol=0.8){
- let o=ctx.createOscillator(), g=ctx.createGain();
- o.frequency.value=isKick?60:120; o.type="sine";
- o.connect(g); g.connect(masterGain);
- g.gain.setValueAtTime(0,time); g.gain.linearRampToValueAtTime(vol,time+0.01); g.gain.exponentialRampToValueAtTime(0.001,time+0.3);
- o.start(time); o.stop(time+0.4);
-}
-function playKambaNote(freq,time,dur,vol=0.45,bright=false){
- let o=ctx.createOscillator(), g=ctx.createGain(), f=ctx.createBiquadFilter();
- o.type=bright?"triangle":"sine"; o.frequency.value=freq;
- f.type="lowpass"; f.frequency.value=2000;
- o.connect(f); f.connect(g); g.connect(masterGain);
- g.gain.setValueAtTime(0,time); g.gain.linearRampToValueAtTime(vol,time+0.02); g.gain.exponentialRampToValueAtTime(0.01,time+dur);
- o.start(time); o.stop(time+dur+0.1);
-}
-function singWord(freq,time,dur){
- // Sauti inayofanana na kuimba, si kuongea - ni kama vocal ya Kamba
- let o=ctx.createOscillator(), o2=ctx.createOscillator(), g=ctx.createGain();
- o.type="sawtooth"; o.frequency.value=freq;
- o2.type="sine"; o2.frequency.value=freq*1.01;
- o.connect(g); o2.connect(g); g.connect(masterGain);
- g.gain.setValueAtTime(0,time); g.gain.linearRampToValueAtTime(0.38,time+0.05); g.gain.linearRampToValueAtTime(0.3,time+dur*0.7); g.gain.exponentialRampToValueAtTime(0.001,time+dur);
- o.start(time); o2.start(time); o.stop(time+dur); o2.stop(time+dur);
-}
+// Kamba benga scale
+const scale=[196,220,247,294,330,392,440];
+function note(f,t,d,v=0.4){ let o=ctx.createOscillator(), g=ctx.createGain(); o.type="triangle"; o.frequency.value=f; o.connect(g); g.connect(master); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(v,t+0.02); g.gain.exponentialRampToValueAtTime(0.001,t+d); o.start(t); o.stop(t+d+0.05); srcNodes.push(o); }
+function kick(t){ note(75,t,0.4,"sine",0.9); }
 
-function parseLyrics(){
- let text=document.getElementById('lyrics').value;
- let parts=text.split(/Chorus:|Verse1:|Verse2:/i).filter(s=>s.trim());
- return parts; // [verse1, chorus, verse2]
-}
-
-function playFullSong(){
- stopSong();
+function playMix(){
+ stopAll();
  ctx=new (window.AudioContext||window.webkitAudioContext)();
- masterGain=ctx.createGain(); masterGain.gain.value=0.9; masterGain.connect(ctx.destination);
- isPlaying=true;
- let lyricsParts=parseLyrics();
- let bpm=96, beatSec=60/bpm;
- let globalTime=ctx.currentTime+0.2;
- let allWords=[];
+ master=ctx.createGain(); master.gain.value=0.9; master.connect(ctx.destination);
+ playing=true;
+ let now=ctx.currentTime+0.2;
+ let bpm=88, beat=60/bpm;
 
- // Tengeneza timeline
- let tl=document.getElementById('timeline'); tl.innerHTML="";
- songStructure.forEach((p,i)=>{let d=document.createElement('div'); d.className='t-part'; d.id='part-'+i; d.innerText=p.name; tl.appendChild(d);});
-
- function schedulePart(partIndex){
-  if(partIndex>=songStructure.length){ isPlaying=false; document.getElementById('status').innerHTML="✅ Wimbo umekamilika! Verse + Chorus + Solo zote!"; return; }
-  let part=songStructure[partIndex];
-  document.querySelectorAll('.t-part').forEach(e=>e.classList.remove('active'));
-  document.getElementById('part-'+partIndex).classList.add('active');
-  document.getElementById('status').innerHTML=`🎵 ${part.name} - ${part.duration} beats`;
-
-  let partBeats=part.duration;
-  for(let b=0;b<partBeats;b++){
-    let t=globalTime + b*beatSec;
-
-    // 1. DRUMS - inabadilika kila part (tofauti tofauti!)
-    if(part.type=="intro"){ if(b%4==0) playDrum(t,true,0.7); if(b%2==0) playKambaNote(196,t,0.4,0.2); }
-    else if(part.type=="verse"){ if(b%4==0) playDrum(t,true,0.85); if(b%2==1) playDrum(t,false,0.3); playKambaNote(kambaScale[b%5],t,0.5,0.25); }
-    else if(part.type=="chorus"){ if(b%2==0) playDrum(t,true,0.9); if(b%2==1) playDrum(t,false,0.5); playKambaNote(chorusScale[b%5],t,0.6,0.35,true); }
-    else if(part.type=="solo"){ // SOLO KAMA KATIVOI - inacheza notes nyingi haraka!
-      if(b%2==0) playDrum(t,true,0.8);
-      // Solo pattern original yangu - inafanana na Kativoi lakini si copy
-      let soloPattern=[0,2,4,6,7,6,4,2,0,1,3,5,7,5,3,1];
-      let f=kambaScale[soloPattern[b%soloPattern.length]]*(b>8?2:1);
-      playKambaNote(f,t,0.22,0.55,true);
-      if(b%3==0) playKambaNote(f*1.5,t+0.08,0.2,0.25,true); // harmony
-    }
-    else if(part.type=="outro"){ if(b%4==0) playDrum(t,true,0.6); playKambaNote(kambaScale[7-b%8],t,0.8,0.3); }
-  }
-
-  // 2. KUIMBA MANENO - kwa sauti ya wimbo, si kuongea!
-  if(part.lyricsIndex!==undefined && lyricsParts[part.lyricsIndex]){
-    let words=lyricsParts[part.lyricsIndex].trim().split(/\s+/);
-    let wordsPerBeat= words.length / partBeats;
-    words.forEach((w,wi)=>{
-      let wt=globalTime + (wi/wordsPerBeat)*beatSec;
-      let noteFreq= part.type=="chorus"? chorusScale[wi%5] : kambaScale[wi%kambaScale.length];
-      singWord(noteFreq, wt, beatSec*0.9);
-      // highlight maneno
-      timeouts.push(setTimeout(()=>{
-        document.querySelectorAll('.word').forEach(e=>e.classList.remove('active'));
-        let el=document.getElementById('word-'+wi+'-'+partIndex);
-        if(el) el.classList.add('active');
-      }, (wt-ctx.currentTime)*1000));
-    });
-    // display lyrics
-    let disp=document.getElementById('lyricsDisplay');
-    disp.innerHTML=words.map((w,i)=>`<span class="word" id="word-${i}-${partIndex}">${w}</span>`).join(' ');
-  }
-
-  globalTime+=partBeats*beatSec;
-  timeouts.push(setTimeout(()=>schedulePart(partIndex+1), partBeats*beatSec*1000));
+ // Kamba loop 14 sec kama Kativoi
+ for(let bar=0; bar<7; bar++){
+   let bt=now+bar*2;
+   kick(bt);
+   note(98,bt,0.6,0.7); // bass
+   note(147,bt+0.68,0.5,0.5);
+   note(196,bt+0.15,0.8,0.3);
+   note(247,bt+0.5,0.5,0.28);
+   // Solo Kativoi style bar 2,3,5
+   if(bar==2||bar==3||bar==5){
+     let pat=[0,2,4,6,6,5,4,2,0,2,4,5,7,5];
+     pat.forEach((p,i)=>{ let f=scale[p%scale.length]*(i>7?2:1); note(f, bt+0.2+i*0.13, 0.22, 0.5); });
+   }
  }
- schedulePart(0);
+ // Sauti yako "eh eh" inacheza mara 3 kama chorus
+ if(voiceBuf){
+   for(let i=0;i<3;i++){
+     let src=ctx.createBufferSource(); src.buffer=voiceBuf;
+     src.connect(master); src.start(now+1+i*4.5); srcNodes.push(src);
+   }
+   document.getElementById('status').innerHTML="🎵 Inacheza: Kamba Benga + 'eh eh' yako (x3) - kama wimbo wa Kativoi!";
+ } else {
+   document.getElementById('status').innerHTML="🎸 Kamba solo pekee inacheza (original, kama Kativoi) - upload 'eh eh' ndio zichanganywe";
+ }
+ draw();
 }
-
-function stopSong(){ isPlaying=false; timeouts.forEach(t=>clearTimeout(t)); timeouts=[]; if(ctx) ctx.close(); document.querySelectorAll('.t-part').forEach(e=>e.classList.remove('active')); document.getElementById('status').innerHTML="⏹️ Ime-stop"; }
+function stopAll(){ playing=false; srcNodes.forEach(n=>{try{n.stop()}catch{}}); srcNodes=[]; if(ctx) ctx.close(); }
+function draw(){ let c=document.getElementById('wave'), x=c.getContext('2d'); c.width=400; function f(){ if(!playing) return; x.fillStyle="#111"; x.fillRect(0,0,400,60); x.fillStyle="#ffcc00"; for(let i=0;i<40;i++) x.fillRect(i*10,30-Math.random()*20,6,Math.random()*35); requestAnimationFrame(f);} f(); }
 </script>
 </body>
 </html>
